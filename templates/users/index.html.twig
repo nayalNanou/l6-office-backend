@@ -3,9 +3,5 @@
 {% block body %}
     <h1>All users</h1>
 
-    <ul>
-        {% for user in users %}
-            <li>{{ user.id }} - {{ user.pseudo }}</li>
-        {% endfor %}
-    </ul>
+    {{ dump() }}
 {% endblock %}

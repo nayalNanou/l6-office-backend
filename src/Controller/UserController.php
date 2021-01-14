@@ -18,11 +18,25 @@ class UserController extends AbstractController
      */
     public function index(): Response
     {
+        $response = new Response(
+            'Content',
+            Response::HTTP_OK,
+            ['content-type' => 'application/json', 
+            'Access-Control-Allow-Origin' => '*']
+        );
+
         $users = $this->getDoctrine()
             ->getRepository(User::class)
             ->findAll();
 
-        return $this->json($users);
+        $response->setContent(json_encode([
+            'users' => $users,
+        ]));
+
+        return $this->json($users, 200, [
+            'Access-Control-Allow-Origin' => 'http://localhost:3000', 
+            'Access-Control-Allow-Credentials' => 'true'
+        ]);
     }
 
     /**
@@ -35,7 +49,7 @@ class UserController extends AbstractController
         if (!empty($pseudo)) {
             $user = new User();
             $user->setPseudo($pseudo);
-            $user->setPosition(rand(0,168));
+            $user->setPosition(0);
             $entityManager->persist($user);
             $entityManager->flush();
         }
@@ -44,35 +58,30 @@ class UserController extends AbstractController
     }
 
     /**
-     * @Route("/edit/{playersInfo}", name="edit")
+     * @Route("/{pseudo}/edit", name="edit")
      */
-    public function edit($playersInfo): Response
+    public function edit(Request $request, $pseudo): Response
     {
-        $arrayPlayersInfo = explode('|', $playersInfo);
+        $position = $request->request->get('position');
 
         $entityManager = $this->getDoctrine()->getManager();
 
-        foreach ($arrayPlayersInfo as $value) {
-            $arrayValue = explode(',', $value);
-            $idPlayer = $arrayValue[0];
-            $positionPlayer = $arrayValue[1];
+        $user = $this->getDoctrine()
+            ->getRepository(User::class)
+            ->findOneBy(
+                ['pseudo' => $pseudo],
+            );
 
-            $user = $this->getDoctrine()
-                ->getRepository(User::class)
-                ->findOneBy(
-                    ['id' => $idPlayer],
-                );
+        $user->setPosition($position);
 
-            if ($user) {
-                $user->setPosition($arrayValue[1]);
+        return $this->json($user);
+/*
 
-                $entityManager->persist($user);
-            }
-        }
-
+        $entityManager->persist($user);
         $entityManager->flush();
 
         return $this->redirectToRoute('user_index');
+*/
     }
 
     /**
