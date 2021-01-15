@@ -39,6 +39,19 @@ class UserController extends AbstractController
     }
 
     /**
+     * @Route("/truncate", name="truncate")
+     */
+    public function truncateTable()
+    {
+        $entityManager = $this->getDoctrine()->getManager();
+        $connection = $entityManager->getConnection();
+        $platform = $connection->getDatabasePlatform();
+        $connection->executeUpdate($platform->getTruncateTableSQL('user', true /* whether to cascade */));
+
+        return $this->redirectToRoute('user_index');
+    }
+
+    /**
      * @Route("/{position}", name="position")
      */
     public function getPseudoByPosition($position)
@@ -62,7 +75,7 @@ class UserController extends AbstractController
         if (!empty($pseudo)) {
             $user = new User();
             $user->setPseudo($pseudo);
-            $user->setPosition(137);
+            $user->setPosition(161);
             $entityManager->persist($user);
             $entityManager->flush();
         }
