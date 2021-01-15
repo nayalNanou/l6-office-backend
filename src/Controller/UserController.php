@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+header('Access-Control-Allow-Origin: *');
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -33,10 +35,21 @@ class UserController extends AbstractController
             'users' => $users,
         ]));
 
-        return $this->json($users, 200, [
-            'Access-Control-Allow-Origin' => 'http://localhost:3000', 
-            'Access-Control-Allow-Credentials' => 'true'
-        ]);
+        return $this->json($users, 200);
+    }
+
+    /**
+     * @Route("/{position}", name="position")
+     */
+    public function getPseudoByPosition($position)
+    {
+        $user = $this->getDoctrine()
+            ->getRepository(User::class)
+            ->findOneBy([
+                'position' => $position,
+            ]);
+
+        return $this->json($user, 200);
     }
 
     /**
@@ -49,7 +62,7 @@ class UserController extends AbstractController
         if (!empty($pseudo)) {
             $user = new User();
             $user->setPseudo($pseudo);
-            $user->setPosition(0);
+            $user->setPosition(137);
             $entityManager->persist($user);
             $entityManager->flush();
         }
@@ -62,7 +75,11 @@ class UserController extends AbstractController
      */
     public function edit(Request $request, $pseudo): Response
     {
-        $position = $request->request->get('position');
+        $data = $request->getContent();
+
+        preg_match('#[0-9]+#i', $data, $match);
+
+        $position = intval($match[0]);
 
         $entityManager = $this->getDoctrine()->getManager();
 
@@ -72,16 +89,14 @@ class UserController extends AbstractController
                 ['pseudo' => $pseudo],
             );
 
-        $user->setPosition($position);
-
-        return $this->json($user);
-/*
-
-        $entityManager->persist($user);
-        $entityManager->flush();
+        if ($user) {
+            $user->setPosition($position);
+      
+            $entityManager->persist($user);
+            $entityManager->flush();
+        }
 
         return $this->redirectToRoute('user_index');
-*/
     }
 
     /**

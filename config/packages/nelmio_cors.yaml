@@ -10,3 +10,4 @@ nelmio_cors:
         '^/':
             origin_regex: true
             allow_origin: ['^http://localhost:[0-9]+']
+
